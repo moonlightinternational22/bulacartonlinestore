@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BulaCart | Heritage & Delicacies of Bulacan</title>
+    <style>
+        :root {
+            --sage-primary: #8A9A5B;
+            --sage-dark: #4F5D2F;
+            --sage-light: #E5EAD3;
+            --sage-deep: #3A441F;
+            --cream: #FAF9F6;
+            --text-main: #2D3319;
+            --white: #ffffff;
+            --black-footer: #12140E;
+            --accent-red: #e74c3c;
+        }
+
+        * {
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background-color: var(--cream);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 5%;
+            background: var(--white);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(79, 93, 47, 0.08);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .search-bar input {
+            padding: 12px 25px;
+            border: 2px solid var(--sage-light);
+            border-radius: 25px;
+            width: 320px;
+            outline: none;
+            transition: 0.3s ease;
+            background: var(--cream);
+        }
+
+        .nav-links a {
+            margin-left: 30px;
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover { color: var(--sage-primary); }
+
+        /* --- CART ICON --- */
+        .cart-icon-btn {
+            background: var(--sage-light);
+            color: var(--sage-dark);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 20px;
+            cursor: pointer;
+            position: relative;
+            transition: 0.3s;
+            border: none;
+        }
+        .cart-icon-btn:hover { background: var(--sage-primary); color: white; }
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--sage-dark);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        /* --- MODAL & TOAST --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .cart-modal {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            padding: 30px;
+            position: relative;
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .cart-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--sage-light);
+        }
+
+        /* PAYMENT OPTIONS */
+        .payment-methods {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .pay-opt {
+            border: 1px solid var(--sage-light);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .pay-opt:hover { background: var(--sage-light); }
+        .pay-opt.active { background: var(--sage-primary); color: white; border-color: var(--sage-primary); }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--sage-dark);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        /* PAYMENT FORM MODAL */
+        .payment-form-container {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--sage-light);
+            border-radius: 15px;
+            border: 1px solid var(--sage-primary);
+        }
+        .payment-form-container h4 { margin: 0; color: var(--sage-deep); text-align: center; }
+        .payment-form-container input {
+            padding: 12px;
+            border: 1px solid var(--sage-primary);
+            border-radius: 8px;
+            outline: none;
+        }
+
+        /* SUCCESS ANIMATION */
+        #success-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--sage-dark);
+            z-index: 5000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+        }
+        .check-mark {
+            font-size: 80px;
+            background: white;
+            color: var(--sage-dark);
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+        .toast-msg {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--sage-dark);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            z-index: 3000;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .flying-dot {
+            position: fixed;
+            width: 20px; height: 20px;
+            background: var(--sage-primary);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* --- HERO & CONTENT --- */
+        .hero {
+            height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background-color: var(--sage-light);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(138, 154, 91, 0.3) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(79, 93, 47, 0.2) 0%, transparent 40%),
+                linear-gradient(135deg, #ffffff 0%, var(--sage-light) 100%);
+            background-blend-mode: multiply;
+        }
+
+        .hero-box h1 { font-size: 6rem; margin: 0; letter-spacing: 6px; color: var(--sage-dark); font-weight: 800; }
+        .btn-main { padding: 20px 60px; background: var(--sage-dark); color: white; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 1.2rem; transition: 0.4s; display: inline-block; cursor: pointer; border: none; }
+        .btn-main:hover { background: var(--sage-primary); transform: scale(1.05); }
+
+        .shop-page { padding: 100px 5%; background: var(--cream); }
+        .section-title h2 { color: var(--sage-dark); font-size: 3rem; margin-bottom: 15px; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; margin-bottom: 100px; }
+        .town-card { background: var(--white); padding: 35px; border-radius: 20px; border-left: 6px solid var(--sage-light); transition: 0.4s; cursor: pointer; }
+        .town-card:hover { transform: translateX(10px); border-left-color: var(--sage-primary); background: #fcfdf9; }
+        .label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--sage-primary); display: block; margin-top: 20px; }
+
+        /* --- SHOP INTERFACE --- */
+        #webpage-2 { display: none; padding: 80px 5%; min-height: 100vh; }
+        .shop-container { display: flex; gap: 40px; }
+        .sidebar { width: 250px; flex-shrink: 0; }
+        .sidebar h4 { color: var(--sage-dark); border-bottom: 2px solid var(--sage-light); padding-bottom: 10px; margin-bottom: 15px; }
+        .cat-list { list-style: none; padding: 0; }
+        .cat-list li { padding: 8px 0; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
+        .cat-list li:hover { color: var(--sage-primary); padding-left: 5px; }
+        
+        .marketplace-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; flex-grow: 1; }
+        .product-card { background: white; border-radius: 15px; padding: 20px; border: 1px solid var(--sage-light); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        .product-img { width: 100%; height: 200px; background: #f4f4f4; border-radius: 10px; margin-bottom: 15px; overflow: hidden; }
+        .product-img img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
+        .product-price { font-weight: bold; color: var(--sage-dark); font-size: 1.2rem; }
+
+        /* --- FOOTER --- */
+        footer { background: var(--black-footer); color: #E0E0E0; padding: 80px 5% 40px; }
+        .footer-container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 40px; }
+        .footer-logo h2 { color: var(--sage-primary); font-size: 2rem; margin: 0; letter-spacing: 2px; }
+        .footer-column h4 { color: var(--white); margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; font-size: 1rem; border-bottom: 2px solid var(--sage-dark); display: inline-block; padding-bottom: 5px; }
+        .footer-column ul { list-style: none; padding: 0; }
+        .footer-column ul li { margin-bottom: 12px; }
+        .footer-column ul li a { color: #AAA; text-decoration: none; cursor: pointer; }
+        .footer-bottom { text-align: center; margin-top: 60px; padding-top: 30px; border-top: 1px solid #1A1D14; color: #666; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Search heritage products..." onkeypress="handleSearch(event)">
+        </div>
+        <div class="nav-right">
+            <div class="nav-links">
+                <a onclick="showPage(1)">Home</a>
+                <a href="#footer-section">About</a>
+                <a href="#footer-section">Contact</a>
+                <a onclick="filterShop('all')" style="color: var(--sage-primary);">Shop</a>
+            </div>
+            <button class="cart-icon-btn" id="cart-trigger" onclick="toggleCartModal()">
+                🛒 <span class="cart-badge" id="cart-count">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <div id="success-overlay">
+        <div class="check-mark">✓</div>
+        <h2>SUCCESSFUL PURCHASE</h2>
+        <p>Thank you for using BulaCart!</p>
+        <button class="btn-main" style="background:white; color:var(--sage-dark); margin-top:30px;" onclick="closeSuccess()">Continue Shopping</button>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay" onclick="toggleCartModal()">
+        <div class="cart-modal" onclick="event.stopPropagation()">
+            <h2 style="color:var(--sage-dark); margin-top:0;">Your Heritage Cart</h2>
+            <div id="cart-items-container" style="max-height:200px; overflow-y:auto;">
+                <p style="text-align:center; color:#999;">Cart is empty.</p>
+            </div>
+            
+            <div style="margin-top:20px; border-top:2px solid var(--sage-light); padding-top:10px;">
+                <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1.2rem;">
+                    <span>Total:</span>
+                    <span id="cart-total">₱0</span>
+                </div>
+            </div>
+
+            <div class="payment-methods">
+                <div class="pay-opt active" onclick="selectPayment('GCASH')">GCASH</div>
+                <div class="pay-opt" onclick="selectPayment('PAYPAL')">PAYPAL</div>
+                <div class="pay-opt" onclick="selectPayment('CASH')">CASH</div>
+            </div>
+
+            <div class="payment-form-container" id="digital-payment-form">
+                <h4 id="payment-form-title">GCash Account Details</h4>
+                <input type="text" id="acc-name" placeholder="Account Name">
+                <input type="text" id="acc-number" placeholder="Account Number (09xx...)">
+            </div>
+
+            <button class="checkout-btn" onclick="processCheckout()">PROCEED TO CHECKOUT</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast-msg">Added to Cart! 🌿</div>
+
+    <div id="webpage-1">
+        <section class="hero">
+            <div class="hero-box">
+                <h1>BulaCart</h1>
+                <p>The Heart of Bulacan, Delivered to Your Door.</p>
+                <button onclick="filterShop('all')" class="btn-main">EXPLORE SHOP</button>
+            </div>
+        </section>
+
+        <section class="shop-page">
+            <div class="section-title"><h2>Featured Cities</h2></div>
+            <div class="grid-container">
+                <div class="town-card" onclick="filterShop('Malolos City')"><h3>MALOLOS CITY</h3><span class="label">Industry</span><span>Heritage Food & Pabalat</span></div>
+                <div class="town-card" onclick="filterShop('Meycauayan City')"><h3>MEYCAUAYAN CITY</h3><span class="label">Industry</span><span>Jewelry & Leather</span></div>
+                <div class="town-card" onclick="filterShop('SJDM')"><h3>CITY OF SAN JOSE DEL MONTE</h3><span class="label">Industry</span><span>Agri-Poultry</span></div>
+                <div class="town-card" onclick="filterShop('Baliwag City')"><h3>BALIWAG CITY</h3><span class="label">Industry</span><span>Buntal & Lechon</span></div>
+            </div>
+
+            <div class="section-title"><h2>Municipalities</h2></div>
+            <div id="municipality-grid" class="grid-container"></div>
+        </section>
+    </div>
+
+    <div id="webpage-2">
+        <div class="section-title">
+            <h2 id="shop-title">Heritage Marketplace</h2>
+            <p>Direct from Bulakenyo Artisans.</p>
+        </div>
+        <div class="shop-container">
+            <aside class="sidebar">
+                <h4>Browse by Town</h4>
+                <ul class="cat-list" id="sidebar-cats">
+                    <li onclick="filterShop('all')"><strong>Show All</strong></li>
+                </ul>
+            </aside>
+            <div class="marketplace-grid" id="product-list"></div>
+        </div>
+    </div>
+
+    <footer id="footer-section">
+        <div class="footer-container">
+            <div class="footer-column footer-logo">
+                <h2>BulaCart</h2>
+                <p>Bringing the timeless artistry and flavors of Bulacan to every doorstep.</p>
+            </div>
+            <div class="footer-column">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a onclick="showPage(1)">Home</a></li>
+                    <li><a onclick="filterShop('all')">Shop Directory</a></li>
+                    <li><a href="#">About Bulacan</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Trending</h4>
+                <ul>
+                    <li><a onclick="filterShop('Malolos City')">Malolos</a></li>
+                    <li><a onclick="filterShop('SAN MIGUEL')">San Miguel</a></li>
+                    <li><a onclick="filterShop('SANTA MARIA')">Santa Maria</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Contact Us</h4>
+                <ul style="list-style:none; padding:0; color:#AAA;">
+                    <li>📍 Malolos City, Bulacan</li>
+                    <li>📞 +63 (044) 123-4567</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 BulaCart Philippines</p>
+        </div>
+    </footer>
+
+    <script>
+        const cities = ["Malolos City", "Meycauayan City", "SJDM", "Baliwag City"];
+        const towns = ["SANTA MARIA", "SAN MIGUEL", "BOCAUE", "PANDI", "CALUMPIT", "BUSTOS", "PAOMBONG", "ANGAT", "GUIGUINTO", "HAGONOY", "DOÑA REMEDIOS TRINIDAD", "NORZAGARAY", "OBANDO", "SAN ILDEFONSO", "SAN RAFAEL", "BULAKAN", "BALAGTAS", "PLARIDEL", "PULILAN"];
+        
+        const products = [
+            // MALOLOS
+            { name: "Ensaymada Supreme (6pcs)", town: "Malolos City", price: 130, oldPrice: 150, img: "https://www.womanscribbles.net/wp-content/uploads/2025/04/ensaymada-18-720x720.jpg", sale: false, ship: "Free Shipping" },
+            { name: "Inipit Square (Classic)", town: "Malolos City", price: 25, oldPrice: 30, img: "https://foodpanda.dhmedia.io/image/darkstores/nv-global-catalog/ph/cfca96d3-98c6-4c47-be19-331533f4a819.png?height=480", sale: false, ship: "" },
+            { name: "Empanada de Kaliskis", town: "Malolos City", price: 45, oldPrice: 55, img: "https://images.yummy.ph/yummy/uploads/2018/10/Empanada-de-Kaliskis-003-1.jpg", sale: true, ship: "" },
+            { name: "Framed Pabalat Art", town: "Malolos City", price: 995, oldPrice: 1200, img: "https://www.rappler.com/tachyon/2021/06/51596281_2141964239205761_694361336905203712_n.jpeg", sale: true, ship: "Free Shipping" },
+            { name: "Educational Wooden Toy", town: "Malolos City", price: 150, oldPrice: 200, img: "https://www.keywestinternationale.com.ph/wp-content/uploads/2024/12/Wooden-Toys-Manila-1.jpg", sale: false, ship: "" },
+            
+            // BALIWAG
+            { name: "Baliwag Lechon Manok", town: "Baliwag City", price: 410, oldPrice: 450, img: "https://www.baliwaglechonmanok.com/upload/assets/9PvEe2qJf69brPXooqa5dtqLXxqyHKCzhFtMOFWznDoVgGgpdX.jpg", sale: false, ship: "Free Shipping" },
+            { name: "Premium Buntal Hat", town: "Baliwag City", price: 1500, oldPrice: 2000, img: "https://upload.wikimedia.org/wikipedia/commons/8/8e/Buntaljfccc.JPG", sale: true, ship: "Free Shipping" },
+            { name: "Baliwag Pandesal (Pack)", town: "Baliwag City", price: 25, oldPrice: 35, img: "https://img06.weeecdn.com/product/image/461/709/4F8DBB7452E73BC3.png!c750x0.jpeg", sale: false, ship: "" },
+            { name: "Lechon Paksiw (450g)", town: "Baliwag City", price: 215, oldPrice: 250, img: "https://images.freshop.ncrcloud.com/1564405684710184106/d290b839c6847020fa0a4bdd10600378_large.png", sale: false, ship: "" },
+            { name: "Burong Isda (Jar)", town: "Baliwag City", price: 120, oldPrice: 150, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHZT5Sv_93RTNSHC1WFugf2aq-PNT3ueiL6Q&s", sale: false, ship: "" },
+
+            // MEYCAUAYAN
+            { name: "Gold Wedding Band", town: "Meycauayan City", price: 3800, oldPrice: 4200, img: "https://cdn.shopify.com/s/files/1/1587/6949/files/Frosted_Rose_Gold_Plated_Titanium_Wedding_Band_D3.jpg?5707623750973844887", sale: true, ship: "Free Shipping" },
+            { name: "Genuine Leather Belt", town: "Meycauayan City", price: 350, oldPrice: 500, img: "https://down-ph.img.susercontent.com/file/2555ca00fba62522e74b29ceb89f9db1", sale: false, ship: "" },
+            { name: "Leather Handbag", town: "Meycauayan City", price: 1200, oldPrice: 1800, img: "https://images.summitmedia-digital.com/spotph/images/2017/09/18/the-tannery-640-2.jpg", sale: true, ship: "Free Shipping" },
+            { name: "Native Puto (Tub)", town: "Meycauayan City", price: 150, oldPrice: 180, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIFUnGRc7UMgYFY7Tcw3g5fKLBaE8ZUoUMpQ&s", sale: false, ship: "" },
+            { name: "Silver Local Earrings", town: "Meycauayan City", price: 450, oldPrice: 600, img: "https://silverorigins.com/cdn/shop/products/sea-breeze-earrings-406281.jpg?v=1675362082", sale: false, ship: "" },
+
+            // SJDM
+            { name: "Fresh Whole Chicken (kg)", town: "SJDM", price: 180, oldPrice: 210, img: "https://safeselect.ph/cdn/shop/products/Chicken_Whole_1200x1200.jpg?v=1641872013", sale: false, ship: "" },
+            { name: "Assorted Kakanin Bilao", town: "SJDM", price: 350, oldPrice: 450, img: "https://i.pinimg.com/736x/69/88/7f/69887f2b04607c6b0e137e13d6fce446.jpg", sale: true, ship: "" },
+            { name: "Fresh Eggs", town: "SJDM", price: 210, oldPrice: 250, img: "https://freshoptions.ph/cdn/shop/collections/egg_1200x1200.jpg?v=1616665092", sale: false, ship: "" },
+            { name: "Cassava Cake", town: "SJDM", price: 250, oldPrice: 300, img: "https://www.pinoycookingrecipes.com/uploads/7/6/7/8/7678114/photo-1597116344525-1_orig.jpg", sale: false, ship: "" },
+            { name: "Native Longganisa", town: "SJDM", price: 160, oldPrice: 200, img: "https://www.pampangasbest.com/wp-content/uploads/2016/04/Native-Longaniza.jpg", sale: false, ship: "" },
+
+            // SANTA MARIA
+            { name: "Pork Chicharon Bagnet", town: "SANTA MARIA", price: 170, oldPrice: 220, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTRRKCeXKE46RWSA9-OZmPWhjlB_HIos5oVKg&s", sale: true, ship: "Free Shipping" },
+            { name: "Puro Chicharon Laman", town: "SANTA MARIA", price: 50, oldPrice: 80, img: "https://scontent.fcrk1-1.fna.fbcdn.net/v/t1.6435-9/106420276_157818725866674_1512579915332050610_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=833d8c&_nc_ohc=86B72LaOMREQ7kNvwG6hvXb&_nc_oc=Adk5uyHDZ6-O0M8Wh-DITXWmojSBtFFUfRCIQVrDuxqjflyo6VDsi4FRjwVGQF-CBXo&_nc_zt=23&_nc_ht=scontent.fcrk1-1.fna&_nc_gid=NKo7XV3OjNIe2JTDPJtLHA&oh=00_AftPe9surVVQ53j3CbYTXPWVLvAit9NECYPXBNZnxsF_bA&oe=69ACC7DE", sale: false, ship: "" },
+            { name: "Tabaron Cracklings", town: "SANTA MARIA", price: 139, oldPrice: 160, img: "https://shopsuki.ph/cdn/shop/files/1234615023973_800x.jpg?v=1703756100", sale: false, ship: "" },
+            { name: "Spicy Butcheron", town: "SANTA MARIA", price: 90, oldPrice: 120, img: "https://images.freshop.ncrcloud.com/1564405684704732971/3fd59b5b4d00b998fb0993f68eb5cff2_large.png", sale: true, ship: "" },
+            { name: "Mushroom Chips", town: "SANTA MARIA", price: 75, oldPrice: 100, img: "https://rootscollective.ph/cdn/shop/files/2_84f1568f-1f37-4e8f-8bea-670ce98668b4.png?v=1717398359&width=900", sale: false, ship: "" },
+
+            // SAN MIGUEL
+            { name: "Pure Carabao Pastillas", town: "SAN MIGUEL", price: 113, oldPrice: 140, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRud2mJ-RF0_3QmnHWNQI1yt90aedP-NQOJaA&s", sale: true, ship: "" },
+            { name: "Toasted Pastillas", town: "SAN MIGUEL", price: 95, oldPrice: 120, img: "https://tasteandsee.com.ph/cdn/shop/products/IMG_1011_1200x1200.jpg?v=1675434191", sale: false, ship: "" },
+            { name: "Biscocho Original", town: "SAN MIGUEL", price: 70, oldPrice: 90, img: "https://biscochohaus.com/wp-content/uploads/2019/11/DSCF6771.jpg", sale: false, ship: "" },
+            { name: "Carabao Milk Jumbo", town: "SAN MIGUEL", price: 249, oldPrice: 300, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTBl_VEfWYH55OsebdCKMiRsn2EHCZKm88YVA&s", sale: true, ship: "Free Shipping" },
+            { name: "Yema Pastillas", town: "SAN MIGUEL", price: 160, oldPrice: 200, img: "https://www.rappler.com/tachyon/2022/10/yema-pastillas.jpg", sale: false, ship: "" },
+
+            // BOCAUE
+            { name: "Sawa Firecrackers (1k)", town: "BOCAUE", price: 1500, oldPrice: 1800, img: "https://aljens-dragon-fireworks.myshopify.com/cdn/shop/files/Messenger-creation_06F8F4DE-6B17-472E-86C4-505C5B872D4D.jpg?v=1735299593", sale: true, ship: "" },
+            { name: "Kwitis (100 sticks)", town: "BOCAUE", price: 1200, oldPrice: 1500, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS8Qd0QRXmUL_E8-6uPmosnRXu5TysY1iCDKQ&s", sale: false, ship: "" },
+            { name: "Aerial Fireworks (16s)", town: "BOCAUE", price: 500, oldPrice: 750, img: "https://aljens-dragon-fireworks.myshopify.com/cdn/shop/products/Leiramorethan7_910334e4-9cc2-4a99-9ef4-6617fd479b70.jpg?v=1639975838", sale: true, ship: "" },
+            { name: "Leather Wallet", town: "BOCAUE", price: 200, oldPrice: 400, img: "https://craftandglory.in/cdn/shop/products/DSC07927_1.jpg?v=1660802328&width=1946", sale: true, ship: "" },
+
+            // PANDI
+            { name: "Modern Barong Tagalog", town: "PANDI", price: 660, oldPrice: 900, img: "https://barongtagalog.com/cdn/shop/products/cream_barong_tagalog_chinese_collar_FRONT.jpg?v=1674634080", sale: true, ship: "Free Shipping" },
+            { name: "Filipiniana Gown", town: "PANDI", price: 1200, oldPrice: 2000, img: "https://i.pinimg.com/originals/dc/4e/92/dc4e9286f8e44ff47b19b296c038ad24.jpg", sale: true, ship: "Free Shipping" },
+            { name: "Embroidered Hanky", town: "PANDI", price: 50, oldPrice: 80, img: "https://i.pinimg.com/236x/f6/c9/ab/f6c9ab8b826e9d22a94c7c708ad94f26.jpg", sale: false, ship: "" },
+
+            // CALUMPIT
+            { name: "longganisang calumpit", town: "CALUMPIT", price: 180, oldPrice: 220, img: "https://timplado.ph/cdn/shop/products/CalumpitIMG_3769-edited_1200x1200.jpg?v=1692588080", sale: true, ship: "" },
+            { name: "Clay Palayok", town: "CALUMPIT", price: 100, oldPrice: 200, img: "https://scontent.fcrk1-4.fna.fbcdn.net/v/t1.6435-9/118085443_1070417716694603_3548997503540244812_n.jpg?stp=dst-jpg_s720x720_tt6&_nc_cat=102&ccb=1-7&_nc_sid=833d8c&_nc_ohc=gHJeyyi0dy4Q7kNvwGy5v6E&_nc_oc=AdlKGUqbUwhCUSdmYsUHmuCV85XfRG5GxAWjcz_N_7j82mRGthB6G9hZA1IeKndAhFY&_nc_zt=23&_nc_ht=scontent.fcrk1-4.fna&_nc_gid=rzDXyafOTMycqLgkAs0kUg&oh=00_Aftn7e0YdzH_xezMHT7JXkNze8G6OKWevlbs6L8Rn8PK9g&oe=69ACBEE9", sale: false, ship: "" },
+
+            // BUSTOS
+            { name: "Minasa Cassava Cookies", town: "BUSTOS", price: 355, oldPrice: 400, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWZt_oWZt08q41F7DwNGx701c0_-W3dr6JXw&s", sale: false, ship: "Free Shipping" },
+            { name: "Barquillos Local Blend", town: "BUSTOS", price: 125, oldPrice: 150, img: "https://hicaps.com.ph/wp-content/uploads/2025/06/1-6.jpg", sale: false, ship: "" },
+
+            // PAOMBONG
+            { name: "Purong Suka Paombong", town: "PAOMBONG", price: 150, oldPrice: 250, img: "https://ph-test-11.slatic.net/p/4afaa303b9d616fa0e8a8d05ef7c07dc.jpg", sale: true, ship: "" },
+            { name: "Spicy Nipa Vinegar", town: "PAOMBONG", price: 110, oldPrice: 150, img: "https://www.gastronomiac.com/wp/wp-content/uploads/2021/05/Vinaigre-de-palme-Nipa.jpg", sale: false, ship: "" },
+
+            // ANGAT
+            { name: "Hand-forged Bolo", town: "ANGAT", price: 600, oldPrice: 900, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQSlWSscRz2tm1ICnO0jqnwtrKWD2d4U8giJw&s", sale: true, ship: "Free Shipping" },
+            { name: "Grace Espasol", town: "ANGAT", price: 100, oldPrice: 130, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLINUEBb333Z-uDaBjs_7lzq2fXyH3ofrZwA&s", sale: false, ship: "" },
+
+            // GUIGUINTO
+            { name: "Ornamental Plants", town: "GUIGUINTO", price: 150, oldPrice: 300, img: "https://transagra.com/wp-content/uploads/2021/06/variety-of-pretty-flowers-arranged-nicely-in-garden.jpg", sale: true, ship: "" },
+            { name: "Pastel De Leche", town: "GUIGUINTO", price: 165, oldPrice: 190, img: "https://images.aws.nestle.recipes/resized/3d656e26994db81816819555bd2bbae7_bak---01---tres-leches-cake-586_1080_850.jpg", sale: false, ship: "" },
+
+            // HAGONOY
+            { name: "Fresh Alimango (kg)", town: "HAGONOY", price: 800, oldPrice: 1000, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2-D4T1NqrxZH-SzWh56dUiL1jC2udVCfqcQ&s", sale: true, ship: "Free Shipping" },
+            { name: "Fresh Suahe (kg)", town: "HAGONOY", price: 450, oldPrice: 600, img: "https://pindotlang.com/cdn/shop/products/8ec5dc39-e367-467e-bbdf-7b311788060b_109c2eb2-fa28-42fe-95fa-510780690bcf.jpg?v=1650184207&width=1024", sale: false, ship: "" },
+
+            // DRT
+            { name: "Kapeng Tagalog (250g)", town: "DOÑA REMEDIOS TRINIDAD", price: 250, oldPrice: 300, img: "https://down-ph.img.susercontent.com/file/ph-11134207-7r98o-lvj4f3gw0zf302", sale: true, ship: "Free Shipping" },
+            { name: "Pure Wild Honey", town: "DOÑA REMEDIOS TRINIDAD", price: 350, oldPrice: 450, img: "https://ecowarriorph.com/wp-content/uploads/2022/09/hon.jpg", sale: false, ship: "" },
+
+            // NORZAGARAY
+            { name: "Roasted Cashew Nuts", town: "NORZAGARAY", price: 280, oldPrice: 350, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXBD5RAXp4XrXpLhAwqKpCgIp0N2paDGzb5g&s", sale: true, ship: "" },
+            { name: "Crispy Pata", town: "NORZAGARAY", price: 690, oldPrice: 750, img: "https://panlasangpinoy.com/wp-content/uploads/2011/02/Crispy-Pata-Recipe.jpg", sale: false, ship: "" },
+
+            // OBANDO
+            { name: "Pinipig de Leche", town: "OBANDO", price: 150, oldPrice: 200, img: "https://i.ytimg.com/vi/p1FIaPA_kb8/maxresdefault.jpg", sale: false, ship: "" },
+            { name: "Atsarang Dampalit", town: "OBANDO", price: 110, oldPrice: 140, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLzZoSiLyaaZaV3K8LysP0GP9uc-znrZGq4g&s", sale: false, ship: "" },
+
+            // SAN ILDEFONSO
+            { name: "Buntal Bag", town: "SAN ILDEFONSO", price: 800, oldPrice: 1200, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRaAjOoR56UkHb2599k0sxxz41UmgT5cuOh9A&s", sale: true, ship: "Free Shipping" },
+            
+            // SAN RAFAEL
+            { name: "Salted Egg Mushroom", town: "SAN RAFAEL", price: 85, oldPrice: 110, img: "https://www.unileverfoodsolutions.com.ph/dam/global-ufs/mcos/SEA/calcmenu/recipes/PH-recipes/appetisers/crispy-salted-egg-oyster-and-enoki-mushrooms/crispy-salted-egg-oyster-and-enoki-mushrooms-main.jpg", sale: false, ship: "" },
+
+            // BULAKAN
+            { name: "Puni Art Souvenir", town: "BULAKAN", price: 150, oldPrice: 300, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQc0AUD_x1wyeZe9iGfLdy6PZFWF9Z9ZU81Pw&s", sale: true, ship: "" },
+            { name: "Gurgurya Biscuit", town: "BULAKAN", price: 120, oldPrice: 150, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQV0arQUK4TMa_SrEAmEedt6qUrOFOlBkELmA&s", sale: false, ship: "" },
+
+            // BALAGTAS
+            { name: "Rattan Chair", town: "BALAGTAS", price: 2500, oldPrice: 3500, img: "https://www.ikea.com/ph/en/images/products/fryksas-chair-with-cushion-rattan-risane-natural__1290100_pe934519_s5.jpg", sale: true, ship: "Free Shipping" },
+
+            // PLARIDEL
+            { name: "Spanish Bread (Pack)", town: "PLARIDEL", price: 85, oldPrice: 100, img: "https://www.snrshopping.com/upload/product/S-R-Spanish-Bread-11pcs-8537/SR%20Spanish%20Bread%2011pcs-dhxLKILuUm.jpg", sale: false, ship: "" },
+
+            // PULILAN
+            { name: "Animal Planter Pot", town: "PULILAN", price: 250, oldPrice: 400, img: "https://thepinocollection.com/cdn/shop/files/pulilan-26.jpg?v=1741930304&width=533", sale: true, ship: "" }
+        ];
+
+        function showPage(num) {
+            document.getElementById('webpage-1').style.display = num === 1 ? 'block' : 'none';
+            document.getElementById('webpage-2').style.display = num === 2 ? 'block' : 'none';
+            window.scrollTo(0,0);
+        }
+
+        function initUI() {
+            const mGrid = document.getElementById('municipality-grid');
+            const sCats = document.getElementById('sidebar-cats');
+            const allLocations = [...cities, ...towns];
+            
+            towns.forEach(t => {
+                mGrid.innerHTML += `<div class="town-card" onclick="filterShop('${t}')"><h3>${t}</h3><span class="label">Industry</span><span>Native Product</span></div>`;
+            });
+
+            allLocations.forEach(loc => {
+                sCats.innerHTML += `<li onclick="filterShop('${loc}')">${loc}</li>`;
+            });
+            
+            filterShop('all'); 
+            showPage(1);
+            selectPayment('GCASH');
+        }
+
+        // Fixed: Added search functionality
+        function handleSearch(event) {
+            if (event.key === 'Enter') {
+                const query = event.target.value.toLowerCase();
+                showPage(2);
+                const list = document.getElementById('product-list');
+                const title = document.getElementById('shop-title');
+                list.innerHTML = '';
+                title.innerText = `Search results for: "${event.target.value}"`;
+
+                const filtered = products.filter(p => 
+                    p.name.toLowerCase().includes(query) || 
+                    p.town.toLowerCase().includes(query)
+                );
+
+                renderProducts(filtered);
+            }
+        }
+
+        function filterShop(townName) {
+            showPage(2);
+            const list = document.getElementById('product-list');
+            const title = document.getElementById('shop-title');
+            list.innerHTML = '';
+            title.innerText = townName === 'all' ? "Heritage Marketplace" : `${townName} Collection`;
+            
+            const filtered = townName === 'all' ? products : products.filter(p => p.town.toUpperCase() === townName.toUpperCase());
+            renderProducts(filtered);
+        }
+
+        // Extracted rendering logic to a helper function
+        function renderProducts(filtered) {
+            const list = document.getElementById('product-list');
+            if(filtered.length === 0) {
+                list.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 50px;">No products found for this location yet.</p>`;
+                return;
+            }
+
+            filtered.forEach((p) => {
+                list.innerHTML += `
+                    <div class="product-card">
+                        ${p.sale ? '<div style="position:absolute; top:10px; right:10px; background:var(--accent-red); color:white; padding:4px 10px; font-size:0.7rem; border-radius:5px; font-weight:bold; z-index:2;">SALE</div>' : ''}
+                        <div class="product-img"><img src="${p.img}" alt="${p.name}"></div>
+                        <span class="label">${p.town}</span>
+                        <h4 style="margin: 10px 0;">${p.name}</h4>
+                        <div>
+                            <span style="text-decoration:line-through; color:#999; font-size:0.9rem; margin-right:8px;">₱${p.oldPrice}</span>
+                            <span class="product-price">₱${p.price}</span>
+                        </div>
+                        <span style="color:#27ae60; font-size:0.75rem; font-weight:bold; margin-top:5px; display:block;">${p.ship}</span>
+                        <button class="btn-main" style="padding: 10px; font-size: 0.8rem; margin-top: 15px; width:100%;" onclick="addToCart('${p.name}', ${p.price}, event)">Add to Cart</button>
+                    </div>`;
+            });
+        }
+
+        let cart = [];
+        let currentPayment = 'GCASH';
+
+        function addToCart(name, price, event) {
+            cart.push({name, price});
+            updateCartUI();
+            const toast = document.getElementById('toast');
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 2000);
+
+            const dot = document.createElement('div');
+            dot.className = 'flying-dot';
+            dot.style.left = event.clientX + 'px';
+            dot.style.top = event.clientY + 'px';
+            document.body.appendChild(dot);
+            
+            const cartRect = document.getElementById('cart-trigger').getBoundingClientRect();
+            setTimeout(() => {
+                dot.style.transform = `translate(${cartRect.left - event.clientX}px, ${cartRect.top - event.clientY}px) scale(0.2)`;
+                dot.style.opacity = '0';
+            }, 50);
+            setTimeout(() => dot.remove(), 800);
+        }
+
+        function updateCartUI() {
+            const container = document.getElementById('cart-items-container');
+            const totalEl = document.getElementById('cart-total');
+            document.getElementById('cart-count').innerText = cart.length;
+            
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#999;">Cart is empty.</p>';
+                totalEl.innerText = '₱0';
+                return;
+            }
+
+            let total = 0;
+            container.innerHTML = cart.map((item, index) => {
+                total += item.price;
+                return `<div class="cart-item-row">
+                    <span>${item.name}</span>
+                    <div>
+                        <span style="margin-right:15px">₱${item.price}</span>
+                        <span style="color:red; cursor:pointer;" onclick="removeItem(${index})">✕</span>
+                    </div>
+                </div>`;
+            }).join('');
+            totalEl.innerText = `₱${total}`;
+        }
+
+        function removeItem(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        function toggleCartModal() {
+            const modal = document.getElementById('modal-overlay');
+            modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function selectPayment(method) {
+            currentPayment = method;
+            const opts = document.querySelectorAll('.pay-opt');
+            opts.forEach(el => {
+                el.classList.remove('active');
+                if(el.innerText === method) el.classList.add('active');
+            });
+
+            const form = document.getElementById('digital-payment-form');
+            const title = document.getElementById('payment-form-title');
+            const accNumInput = document.getElementById('acc-number');
+
+            if(method === 'CASH') {
+                form.style.display = 'none';
+            } else {
+                form.style.display = 'flex';
+                title.innerText = method === 'GCASH' ? 'GCash Account Details' : 'PayPal Account Details';
+                accNumInput.placeholder = method === 'GCASH' ? 'Phone Number (09xx...)' : 'Phone Number (09xx...)';
+            }
+        }
+
+        function processCheckout() {
+            if(cart.length === 0) {
+                alert("Your cart is empty!");
+                return;
+            }
+
+            if(currentPayment !== 'CASH') {
+                const name = document.getElementById('acc-name').value;
+                const num = document.getElementById('acc-number').value;
+                if(!name || !num) {
+                    alert("Please fill in your payment details to proceed.");
+                    return;
+                }
+            }
+
+            toggleCartModal();
+            document.getElementById('success-overlay').style.display = 'flex';
+            cart = [];
+            document.getElementById('acc-name').value = '';
+            document.getElementById('acc-number').value = '';
+            updateCartUI();
+        }
+
+        function closeSuccess() {
+            document.getElementById('success-overlay').style.display = 'none';
+            showPage(1);
+        }
+
+        window.onload = initUI;
+    </script>
+</body>
+</html>
